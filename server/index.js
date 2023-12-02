@@ -2,6 +2,9 @@ const express = require("express");
 
 const cors = require("cors");
 
+const bcrypt = require("bcrypt");
+
+
 const app = express();
 
 const PORT = 4000;
@@ -33,82 +36,69 @@ const users = [];
 const generateID = () => Math.random().toString(36).substring(2, 10);
 
 app.post("/api/login", (req, res) => {
-
     const { email, password } = req.body;
 
-    //👇🏻 checks if the user exists
-
     let result = users.filter(
-
-        (user) => user.email === email && user.password === password
-
+        (user) => user.email === email
     );
-
-    //👇🏻 if the user doesn't exist
 
     if (result.length !== 1) {
-
         return res.json({
-
             error_message: "Incorrect credentials",
-
         });
-
     }
 
-    //👇🏻 Returns the id if successfuly logged in
+    // Compare hashed password
+    bcrypt.compare(password, result[0].password, (err, match) => {
+        if (err || !match) {
+            return res.json({
+                error_message: "Incorrect credentials",
+            });
+        }
 
-    res.json({
-
-        message: "Login successfully",
-
-        id: result[0].id,
-
+        res.json({
+            message: "Login successfully",
+            id: result[0].id,
+        });
     });
-
 });
+
 app.post("/api/register", async (req, res) => {
-
     const { email, password, username } = req.body;
-
     const id = generateID();
 
-    //👇🏻 ensures there is no existing user with the same credentials
-
-    const result = users.filter(
-
-        (user) => user.email === email && user.password === password
-
-    );
-
-    //👇🏻 if true
+    const result = users.filter((user) => user.email === email);
 
     if (result.length === 0) {
+        // Generate a random salt
+        bcrypt.genSalt(10, (err, salt) => {
+            if (err) {
+                return res.json({
+                    error_message: "Failed to generate salt",
+                });
+            }
 
-        const newUser = { id, email, password, username };
+            // Hash the password with the generated salt
+            bcrypt.hash(password, salt, (err, hashedPassword) => {
+                if (err) {
+                    return res.json({
+                        error_message: "Failed to hash password",
+                    });
+                }
 
-        //👇🏻 adds the user to the database (array)
-
-        users.push(newUser);
-
-        //👇🏻 returns a success message
-
-        return res.json({
-
-            message: "Account created successfully!",
-
+                const newUser = { id, email, password: hashedPassword, salt, username };
+                users.push(newUser);
+                console.log(users); // TODO: Remove this line after testing
+                res.json({
+                    message: "Account created successfully!",
+                });
+            });
         });
-
+    } else {
+        res.json({
+            error_message: "User already exists",
+        });
     }
-
-    //👇🏻 if there is an existing user
-
-    res.json({
-
-        error_message: "User already exists",
-
-    });
-
 });
 //👇🏻 holds all the posts created
 
