@@ -14,41 +14,41 @@ const Home = () => {
     const [thread, setThread] = useState("");
     const [threadList, setThreadList] = useState([]);
 
-    const createThread = () => {
-
-        fetch("http://localhost:4000/api/create/thread", {
+    const createThread = async () => {
+        try {
+            const response = await fetch("http://localhost:4000/api/create/thread", {
+                method: "POST",
+                body: JSON.stringify({
+                    thread,
+                    userId: localStorage.getItem("_id"),
+                }),
+                headers: {
+                    "Content-Type": "application/json",
+                },
+            });
     
-            method: "POST",
+            if (!response.ok) {
+                throw new Error(`Error creating thread: ${response.status}`);
+            }
     
-            body: JSON.stringify({
+            const data = await response.json();
+            console.log("Server Response:", data); // Log the response for inspection
     
-                thread,
+            alert(data.message);
     
-                userId: localStorage.getItem("_id"),
-    
-            }),
-    
-            headers: {
-    
-                "Content-Type": "application/json",
-    
-            },
-    
-        })
-    
-            .then((res) => res.json())
-    
-            .then((data) => {
-    
-                alert(data.message);
-
-                setThreadList(data.threads);
-    
-            })
-    
-            .catch((err) => console.error(err));
-    
+            if (data.thread) {
+                // Update the UI state directly with the thread data
+                // Assuming data.thread contains the thread information
+                // Modify this part based on the actual structure of the response
+                setThreadList((prevThreads) => [...prevThreads, data.thread]);
+            }
+        } catch (error) {
+            console.error(error);
+            // Handle error, you might want to show an error message to the user
+        }
     };
+    
+    
     
     
     //👇🏻 Triggered when the form is submitted
@@ -140,13 +140,9 @@ const Home = () => {
                                 <Likes numberOfLikes={thread.likes.length} threadId={thread.id} />
     
                                 <Comments
-    
-                                    numberOfComments={thread.replies.length}
-    
+                                    numberOfComments={thread.replies && thread.replies.length}
                                     threadId={thread.id}
-    
                                     title={thread.title}
-    
                                 />
     
                             </div>
