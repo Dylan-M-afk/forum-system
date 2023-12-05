@@ -1,249 +1,322 @@
 const express = require("express");
-
 const cors = require("cors");
-
 const bcrypt = require("bcrypt");
-
+const { MongoClient, ObjectId} = require("mongodb");
+require('dotenv').config();
 
 const app = express();
-
 const PORT = 4000;
 
-
 app.use(express.urlencoded({ extended: true }));
-
 app.use(express.json());
-
 app.use(cors());
+
+async function connectToMongoDB() {
+    try {
+        // MongoDB Connection Info
+        const mongoURI = process.env.MONGODB_URI;
+        const databaseName = process.env.DATABASE_NAME;
+
+        // Create a new MongoClient instance
+        const client = new MongoClient(mongoURI);
+
+        // Connect to MongoDB and return the client
+        await client.connect();
+        console.log("Connected to MongoDB");
+        return client;
+    } catch (error) {
+        console.error("Error connecting to MongoDB:", error);
+        throw error;
+    }
+}
+
+
+// Function to get the MongoDB collection
+const getCollection = async (collectionName, client) => {
+    try {
+        const databaseName = process.env.DATABASE_NAME;
+        const db = client.db(databaseName);
+        const collection = db.collection(collectionName);
+        return collection;
+    } catch (error) {
+        console.error("Error getting MongoDB collection:", error);
+        throw error;
+    }
+};
 
 
 app.get("/api", (req, res) => {
-
     res.json({
-
         message: "Hello world",
-
     });
-
 });
-
-//👇🏻 holds all the existing users
-
-const users = [];
 
 //👇🏻 generates a random string as ID
 
 const generateID = () => Math.random().toString(36).substring(2, 10);
 
-app.post("/api/login", (req, res) => {
-    const { email, password } = req.body;
-
-    let result = users.filter(
-        (user) => user.email === email
-    );
-
-    if (result.length !== 1) {
-        return res.json({
-            error_message: "Incorrect credentials",
-        });
+// Function to get user data by ID
+const getUserById = async (id) => {
+    let client;
+    try {
+        client = await connectToMongoDB();
+        const usersCollection = await getCollection("Users", client);
+        const user = await usersCollection.findOne({ id });
+        return user;
+    } catch (error) {
+        console.error(error);
+        throw error;
+    } finally {
+        await client.close();
     }
+};
 
-    // Compare hashed password
-    bcrypt.compare(password, result[0].password, (err, match) => {
-        if (err || !match) {
+app.post("/api/login", async (req, res) => {
+    let client;
+    let usersCollection;
+    try {
+        // Retrieve user data from MongoDB
+        const { email, password } = req.body;
+        client = await connectToMongoDB();
+        const usersCollection = await getCollection("Users", client);
+        const user = await usersCollection.findOne({ email });
+
+        if (!user) {
             return res.json({
                 error_message: "Incorrect credentials",
             });
         }
 
-        res.json({
-            message: "Login successfully",
-            id: result[0].id,
-        });
-    });
-});
-
-app.post("/api/register", async (req, res) => {
-    const { email, password, username } = req.body;
-    const id = generateID();
-
-    const result = users.filter((user) => user.email === email);
-
-    if (result.length === 0) {
-        // Generate a random salt
-        bcrypt.genSalt(10, (err, salt) => {
-            if (err) {
+        // Compare hashed password
+        bcrypt.compare(password, user.password, (err, match) => {
+            if (err || !match) {
                 return res.json({
-                    error_message: "Failed to generate salt",
+                    error_message: "Incorrect credentials",
                 });
             }
 
-            // Hash the password with the generated salt
-            bcrypt.hash(password, salt, (err, hashedPassword) => {
-                if (err) {
-                    return res.json({
-                        error_message: "Failed to hash password",
-                    });
-                }
-
-                const newUser = { id, email, password: hashedPassword, salt, username };
-                users.push(newUser);
-                console.log(users); // TODO: Remove this line after testing
-                res.json({
-                    message: "Account created successfully!",
-                });
+            res.json({
+                message: "Login successfully",
+                id: user.id,
             });
         });
-    } else {
+    } catch (error) {
+        console.error(error);
         res.json({
-            error_message: "User already exists",
+            error_message: "An error occurred while fetching user data",
         });
+    } finally {
+        await client.close();
     }
 });
-//👇🏻 holds all the posts created
 
-const threadList = [];
 
+app.post("/api/register", async (req, res) => {
+    let client;
+    try {
+        const { email, password, username } = req.body;
+        console.log(req.body);
+        client = await connectToMongoDB();
+        const usersCollection = await getCollection("Users", client);
+
+
+        const existingUser = await usersCollection.findOne({ email });
+
+        if (existingUser) {
+            return res.json({
+                error_message: "User already exists",
+            });
+        }
+
+        // Retrieve the pepper value from the environment variable
+        const pepper = process.env.PEPPER;
+        console.log("Pepper:", pepper);
+        // Concatenate the password and pepper
+        const pepperedPassword = password + pepper;
+        console.log("Peppered Password:", pepperedPassword);
+        // Hash the peppered password with the generated salt
+        const hashedPassword = await bcrypt.hash(pepperedPassword, salt);
+        console.log(hashedPassword);
+        // Save user data to MongoDB
+        await usersCollection.insertOne({
+            id: generateID(),
+            email,
+            password: hashedPassword,
+            salt,
+            username,
+        });
+        console.log("Account created successfully!")
+        console.log("Email:", email);
+        console.log("Password:", password);
+        console.log("Username:", username);
+        console.log("Salt:", salt);
+        res.json({
+            message: "Account created successfully!",    
+        });
+    } catch (error) {
+        console.error(error);
+        res.json({
+            error_message: "An error occurred while registering the user",
+        });
+    } finally {
+        if (client) await client.close();
+    }
+});
 
 app.post("/api/create/thread", async (req, res) => {
+    const { thread, userId } = req.body;
+    console.log(req.body);
+    const client = await connectToMongoDB();
+    const threadsCollection = await getCollection("Posts", client);
 
-const { thread, userId } = req.body;
-
-const threadId = generateID();
-
-
-    //👇🏻 add post details to the array
-
-    threadList.unshift({
-
-        id: threadId,
-
-        title: thread,
-
-        userId,
-
-        replies: [],
-
-        likes: [],
-
-    });
-
-
-    //👇🏻 Returns a response containing the posts
-
-    res.json({
-
-        message: "Thread created successfully!",
-
-        threads: threadList,
-
-    });
-
-});
-app.get("/api/all/threads", (req, res) => {
-
-    res.json({
-
-        threads: threadList,
-
-    });
-
-});
-app.post("/api/thread/like", (req, res) => {
-
-    //👇🏻 accepts the post id and the user id
-
-    const { threadId, userId } = req.body;
-
-    //👇🏻 gets the reacted post
-
-    const result = threadList.filter((thread) => thread.id === threadId);
-
-    //👇🏻 gets the likes property
-
-    const threadLikes = result[0].likes;
-
-    //👇🏻 authenticates the reaction
-
-    const authenticateReaction = threadLikes.filter((user) => user === userId);
-
-    //👇🏻 adds the users to the likes array
-
-    if (authenticateReaction.length === 0) {
-
-        threadLikes.push(userId);
-
-        return res.json({
-
-            message: "You've reacted to the post!",
-
+    try {
+        const result = await threadsCollection.insertOne({
+            id: generateID(),
+            title: thread,
+            userId,
+            replies: [],
+            likes: [],
         });
-
+        console.log("Thread Creation Result: ",result);
+        if (result.acknowledged) {
+            res.json({
+                message: "Post created successfully!"
+            });
+        } else {
+            res.json({
+                error_message: "Post creation failed",
+            });
+        }        
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({
+            error_message: "Post creation failed",
+            detailed_error: error.message, // Remove this later
+        });
+    } finally {
+        await client.close();
     }
-
-    //👇🏻 Returns an error user has reacted to the post earlier
-
-    res.json({
-
-        error_message: "You can only react once!",
-
-    });
-
 });
-app.post("/api/thread/replies", (req, res) => {
 
-    //👇🏻 The post ID
+app.get("/api/all/threads", async (req, res) => {
+    const client = await connectToMongoDB();
+    const threadsCollection = await getCollection("Posts", client);
 
+    try {
+        const threads = await threadsCollection.find().toArray();
+        res.json({
+            threads,
+        });
+    } catch (error) {
+        console.error(error);
+        res.json({
+            error_message: "An error occurred while fetching threads",
+        });
+    } finally {
+        await client.close();
+    }
+});
+
+app.post("/api/thread/like", async (req, res) => {
+    const { threadId, userId } = req.body;
+    console.log(req.body);
+    const client = await connectToMongoDB();
+    
+    const threadsCollection = await getCollection("Posts", client);
+
+    try {
+        const result = await threadsCollection.findOneAndUpdate(
+            { id: threadId},
+            { $addToSet: { likes: userId } },
+            { returnDocument: 'after' }
+        );
+
+        if (result) {
+            res.json({
+                message: "You've reacted to the thread!",
+            });
+        } else {
+            res.json({
+                error_message: "Thread not found",
+            });
+        }
+    } catch (error) {
+        console.error(error);
+        res.json({
+            error_message: "An error occurred while updating likes",
+        });
+    } finally {
+        await client.close();
+    }
+});
+
+
+app.post("/api/thread/replies", async (req, res) => {
     const { id } = req.body;
-
-    //👇🏻 searches for the post
-
-    const result = threadList.filter((thread) => thread.id === id);
-
-    //👇🏻 return the title and replies
-
-    res.json({
-
-        replies: result[0].replies,
-
-        title: result[0].title,
-
-    });
-
-});
+    const client = await connectToMongoDB();
+    const threadsCollection = await getCollection("Posts", client);
+  
+    try {
+      const result = await threadsCollection.findOne({ id });
+  
+      if (result) {
+        const repliesWithNames = await Promise.all(
+          result.replies.map(async (reply) => {
+            const user = await getUserById(reply.userId);
+            return {
+              ...reply,
+              name: user.username, // Add the username to the reply object
+            };
+          })
+        );
+  
+        res.json({
+          replies: repliesWithNames,
+          title: result.title,
+        });
+      } else {
+        res.json({
+          error_message: "Thread not found",
+        });
+      }
+    } catch (error) {
+      console.error(error);
+      res.json({
+        error_message: "An error occurred while fetching thread details",
+      });
+    } finally {
+      await client.close();
+    }
+  });
 app.post("/api/create/reply", async (req, res) => {
-
-    //👇🏻 accepts the post id, user id, and reply
-
     const { id, userId, reply } = req.body;
+    const client = await connectToMongoDB();
+    const threadsCollection = await getCollection("Posts", client);
 
-    //👇🏻 search for the exact post that was replied to
-
-    const result = threadList.filter((thread) => thread.id === id);
-
-    //👇🏻 search for the user via its id
-
-    const user = users.filter((user) => user.id === userId);
-
-    //👇🏻 saves the user name and reply
-
-    result[0].replies.unshift({
-
-        userId: user[0].id,
-
-        name: user[0].username,
-
-        text: reply,
-
-    });
-
-
-    res.json({
-
-        message: "Response added successfully!",
-
-    });
-
+    try {
+        const result = await threadsCollection.findOneAndUpdate(
+            { id: id},
+            { $push: { replies: { userId, text: reply } } },
+            { returnDocument: 'after' }
+        );
+        console.log(result);
+        if (result) {
+            res.json({
+                message: "Response added successfully!",
+            });
+        } else {
+            res.json({
+                error_message: "Thread not found",
+            });
+        }
+    } catch (error) {
+        console.error(error);
+        res.json({
+            error_message: "An error occurred while adding the response",
+        });
+    } finally {
+        await client.close();
+    }
 });
 
 app.listen(PORT, () => {
