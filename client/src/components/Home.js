@@ -11,7 +11,6 @@ import MiniDrawer from "./MiniDrawer";
 
 const Home = () => {
     const [isLoading, setIsLoading] = useState(false);
-    const [posts, setPosts] = useState([]);
     const [thread, setThread] = useState("");
     const [threadList, setThreadList] = useState([]);
 
