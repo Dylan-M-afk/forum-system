@@ -7,8 +7,6 @@ import Likes from "../utils/Likes";
 import Comments from "../utils/Comments";
 import MiniDrawer from "./MiniDrawer";
 
-
-
 const Home = () => {
     const [isLoading, setIsLoading] = useState(false);
     const [thread, setThread] = useState("");
@@ -26,16 +24,16 @@ const Home = () => {
                     "Content-Type": "application/json",
                 },
             });
-    
+
             if (!response.ok) {
                 throw new Error(`Error creating thread: ${response.status}`);
             }
-    
+
             const data = await response.json();
             console.log("Server Response:", data); // Log the response for inspection
-    
+
             alert(data.message);
-    
+
             if (data.thread) {
                 setThreadList((prevThreads) => [...prevThreads, data.thread]);
             }
@@ -44,38 +42,48 @@ const Home = () => {
             // Handle error, you might want to show an error message to the user
         }
     };
-    
-    
-    
-    
-    //👇🏻 Triggered when the form is submitted
-    
+
     const handleSubmit = (e) => {
-    
         e.preventDefault();
-    
-        //👇🏻 Calls the function
-    
         createThread();
-    
         setThread("");
-    
     };
-    //👇🏻 The useEffect Hook
+
     const navigate = useNavigate();
     const fetchThreads = () => {
+        const storedThreads = localStorage.getItem("threads");
+        if (storedThreads) {
+            setThreadList(JSON.parse(storedThreads));
+        } else {
+            setIsLoading(true);
+            fetch("http://localhost:4000/api/all/threads")
+                .then((res) => res.json())
+                .then((data) => {
+                    setThreadList(data.threads);
+                    localStorage.setItem("threads", JSON.stringify(data.threads));
+                    setIsLoading(false);
+                })
+                .catch((err) => {
+                    console.error(err)
+                    setIsLoading(false);
+                });
+        }
+    }
+
+    const refreshThreads = () => {
         setIsLoading(true);
         fetch("http://localhost:4000/api/all/threads")
             .then((res) => res.json())
             .then((data) => {
                 setThreadList(data.threads);
+                localStorage.setItem("threads", JSON.stringify(data.threads));
                 setIsLoading(false);
             })
             .catch((err) => {
-                console.error(err);
+                console.error(err)
                 setIsLoading(false);
             });
-    };
+    }
 
     useEffect(() => {
         const checkUser = () => {
@@ -107,6 +115,7 @@ const Home = () => {
                     <button className='homeBtn'>CREATE THREAD</button>
                 </form>
                 <div className='thread__container'>
+                    <button className='refreshBtn' onClick={refreshThreads}>Refresh Threads</button>
                     {isLoading ? (
                         <CircularProgress />
                     ) : (
@@ -129,4 +138,5 @@ const Home = () => {
         </MiniDrawer>
     );
 };
+
 export default Home;

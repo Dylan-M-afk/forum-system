@@ -71,20 +71,31 @@ const Replies = () => {
     setReply("");
   };
 
+  const handleRefresh = () => {
+    setLoading(true);
+    fetch("http://localhost:4000/api/thread/replies", {
+      method: "POST",
+      body: JSON.stringify({
+        id,
+      }),
+      headers: {
+        "Content-Type": "application/json",
+      },
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        setReplyList(data.replies);
+        setTitle(data.title);
+        localStorage.setItem(`replies_${id}`, JSON.stringify(data.replies));
+      })
+      .catch((err) => console.error(err))
+      .finally(() => setLoading(false));
+  };
+
   return (
     <MiniDrawer>
       <main className="replies">
-        <button
-          onClick={() => navigate("/dashboard")}
-          style={{
-            backgroundColor: "#f50057",
-            color: "#fff",
-            padding: "10px 20px",
-            border: "none",
-            borderRadius: "4px",
-            cursor: "pointer",
-          }}
-        >
+        <button onClick={() => navigate("/dashboard")} className="backbtn">
           Go Back
         </button>
         <h1 className="repliesTitle">{title}</h1>
@@ -102,7 +113,9 @@ const Replies = () => {
               name="reply"
               className="modalInput"
             />
+            
             <button className="modalBtn">SEND</button>
+            <button onClick={handleRefresh} className="refreshBtn">Refresh</button>
           </form>
         )}
 
