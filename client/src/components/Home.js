@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 
 import { useNavigate } from "react-router-dom";
 
-
+import CircularProgress from '@mui/material/CircularProgress';
 import Likes from "../utils/Likes";
 import Comments from "../utils/Comments";
 import MiniDrawer from "./MiniDrawer";
@@ -10,7 +10,8 @@ import MiniDrawer from "./MiniDrawer";
 
 
 const Home = () => {
-
+    const [isLoading, setIsLoading] = useState(false);
+    const [posts, setPosts] = useState([]);
     const [thread, setThread] = useState("");
     const [threadList, setThreadList] = useState([]);
 
@@ -37,9 +38,6 @@ const Home = () => {
             alert(data.message);
     
             if (data.thread) {
-                // Update the UI state directly with the thread data
-                // Assuming data.thread contains the thread information
-                // Modify this part based on the actual structure of the response
                 setThreadList((prevThreads) => [...prevThreads, data.thread]);
             }
         } catch (error) {
@@ -66,98 +64,70 @@ const Home = () => {
     };
     //👇🏻 The useEffect Hook
     const navigate = useNavigate();
-    useEffect(() => {
+    const fetchThreads = () => {
+        setIsLoading(true);
+        fetch("http://localhost:4000/api/all/threads")
+            .then((res) => res.json())
+            .then((data) => {
+                setThreadList(data.threads);
+                setIsLoading(false);
+            })
+            .catch((err) => {
+                console.error(err);
+                setIsLoading(false);
+            });
+    };
 
+    useEffect(() => {
         const checkUser = () => {
-    
             if (!localStorage.getItem("_id")) {
-    
                 navigate("/");
-    
             } else {
-    
-                fetch("http://localhost:4000/api/all/threads")
-    
-                    .then((res) => res.json())
-    
-                    .then((data) => setThreadList(data.threads))
-    
-                    .catch((err) => console.error(err));
-    
+                fetchThreads();
             }
-    
         };
-    
+
         checkUser();
-    
     }, [navigate]);
 
-    
     return (
-            <MiniDrawer>
-    
+        <MiniDrawer>
             <main className='home'>
-    
                 <h2 className='homeTitle'>Create a Thread</h2>
-    
                 <form className='homeForm' onSubmit={handleSubmit}>
-    
-                <div className='home__container'>
-
-                    <label htmlFor='thread'>Title / Description</label>
-
-                    <input
-
-                        type='text'
-
-                        name='thread'
-
-                        required
-
-                        value={thread}
-
-                        onChange={(e) => setThread(e.target.value)}
-
-                    />
-
+                    <div className='home__container'>
+                        <label htmlFor='thread'>Title / Description</label>
+                        <input
+                            type='text'
+                            name='thread'
+                            required
+                            value={thread}
+                            onChange={(e) => setThread(e.target.value)}
+                        />
                     </div>
-
                     <button className='homeBtn'>CREATE THREAD</button>
-    
                 </form>
-    
-    
                 <div className='thread__container'>
-    
-                    {threadList.map((thread) => (
-    
-                        <div className='thread__item' key={thread.id}>
-    
-                            <p>{thread.title}</p>
-    
-                            <div className='react__container'>
-    
-                                <Likes numberOfLikes={thread.likes.length} threadId={thread.id} />
-    
-                                <Comments
-                                    numberOfComments={thread.replies && thread.replies.length}
-                                    threadId={thread.id}
-                                    title={thread.title}
-                                />
-    
+                    {isLoading ? (
+                        <CircularProgress />
+                    ) : (
+                        threadList.map((thread) => (
+                            <div className='thread__item' key={thread.id}>
+                                <p>{thread.title}</p>
+                                <div className='react__container'>
+                                    <Likes numberOfLikes={thread.likes.length} threadId={thread.id} />
+                                    <Comments
+                                        numberOfComments={thread.replies && thread.replies.length}
+                                        threadId={thread.id}
+                                        title={thread.title}
+                                    />
+                                </div>
                             </div>
-    
-                        </div>
-    
-                    ))}
-    
+                        ))
+                    )}
                 </div>
-    
             </main>
-            </ MiniDrawer>
-        
+        </MiniDrawer>
     );
 };
-
-
 export default Home;
