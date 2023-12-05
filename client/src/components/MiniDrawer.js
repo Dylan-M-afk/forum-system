@@ -107,11 +107,6 @@ export default function MiniDrawer({ children }) {
   const theme = useTheme();
   const [open, setOpen] = React.useState(false);
   const navigate = useNavigate();
-  const SignOut = () => {
-    localStorage.removeItem("_id");
-    // 👇🏻 redirects to the login page
-    navigate("/");
-  };
 
   const handleDrawerOpen = () => {
     setOpen(true);

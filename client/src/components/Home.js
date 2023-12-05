@@ -11,8 +11,24 @@ const Home = () => {
     const [isLoading, setIsLoading] = useState(false);
     const [thread, setThread] = useState("");
     const [threadList, setThreadList] = useState([]);
+    const navigate = useNavigate();
+    useEffect(() => {
+        const checkUser = () => {
+            if (!localStorage.getItem("_id")) {
+                navigate("/");
+            } else {
+                fetchThreads();
+            }
+        };
+
+        checkUser();
+    }, [navigate]);
 
     const createThread = async () => {
+        if (thread.trim() === "") {
+            alert("Thread title cannot be empty");
+            return;
+        }
         try {
             const response = await fetch("http://localhost:4000/api/create/thread", {
                 method: "POST",
@@ -48,8 +64,6 @@ const Home = () => {
         createThread();
         setThread("");
     };
-
-    const navigate = useNavigate();
     const fetchThreads = () => {
         const storedThreads = localStorage.getItem("threads");
         if (storedThreads) {
@@ -72,6 +86,7 @@ const Home = () => {
 
     const refreshThreads = () => {
         setIsLoading(true);
+        setThreadList([]);
         fetch("http://localhost:4000/api/all/threads")
             .then((res) => res.json())
             .then((data) => {
@@ -85,17 +100,9 @@ const Home = () => {
             });
     }
 
-    useEffect(() => {
-        const checkUser = () => {
-            if (!localStorage.getItem("_id")) {
-                navigate("/");
-            } else {
-                fetchThreads();
-            }
-        };
-
-        checkUser();
-    }, [navigate]);
+    const handleLike = () => {
+        refreshThreads();
+    }
 
     return (
         <MiniDrawer>
@@ -123,7 +130,7 @@ const Home = () => {
                             <div className='thread__item' key={thread.id}>
                                 <p>{thread.title}</p>
                                 <div className='react__container'>
-                                    <Likes numberOfLikes={thread.likes.length} threadId={thread.id} />
+                                    <Likes numberOfLikes={thread.likes.length} threadId={thread.id} onLike={handleLike} />
                                     <Comments
                                         numberOfComments={thread.replies && thread.replies.length}
                                         threadId={thread.id}

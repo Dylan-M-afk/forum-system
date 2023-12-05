@@ -46,6 +46,10 @@ const Replies = () => {
   }, [id]);
 
   const addReply = () => {
+    if (reply.trim() === "") {
+      alert("Reply cannot be empty");
+      return;
+    }
     fetch("http://localhost:4000/api/create/reply", {
       method: "POST",
       body: JSON.stringify({
