@@ -128,12 +128,15 @@ app.post("/api/register", async (req, res) => {
             });
         }
 
-        // Generate a random salt
-        const salt = await bcrypt.genSalt(10);
-
-        // Hash the password with the generated salt
-        const hashedPassword = await bcrypt.hash(password, salt);
-
+        // Retrieve the pepper value from the environment variable
+        const pepper = process.env.PEPPER;
+        console.log("Pepper:", pepper);
+        // Concatenate the password and pepper
+        const pepperedPassword = password + pepper;
+        console.log("Peppered Password:", pepperedPassword);
+        // Hash the peppered password with the generated salt
+        const hashedPassword = await bcrypt.hash(pepperedPassword, salt);
+        console.log(hashedPassword);
         // Save user data to MongoDB
         await usersCollection.insertOne({
             id: generateID(),
@@ -188,7 +191,7 @@ app.post("/api/create/thread", async (req, res) => {
         console.error(error);
         res.status(500).json({
             error_message: "Post creation failed",
-            detailed_error: error.message, // Include more detailed error information
+            detailed_error: error.message, // Remove this later
         });
     } finally {
         await client.close();
@@ -219,7 +222,6 @@ app.post("/api/thread/like", async (req, res) => {
     console.log(req.body);
     const client = await connectToMongoDB();
     
-    // Assuming the collection name is "Threads"
     const threadsCollection = await getCollection("Posts", client);
 
     try {
@@ -263,7 +265,7 @@ app.post("/api/thread/replies", async (req, res) => {
             const user = await getUserById(reply.userId);
             return {
               ...reply,
-              name: user.username, // replace 'name' with the actual field in your user schema
+              name: user.username, // Add the username to the reply object
             };
           })
         );
