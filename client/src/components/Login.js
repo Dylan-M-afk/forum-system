@@ -14,8 +14,6 @@ const Login = () => {
 
         e.preventDefault();
 
-        console.log({ email, password });
-
         setEmail("");
 
         setPassword("");

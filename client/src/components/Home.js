@@ -46,7 +46,6 @@ const Home = () => {
             }
             refreshThreads();
             const data = await response.json();
-            console.log("Server Response:", data); // Log the response for inspection
 
             alert(data.message);
 

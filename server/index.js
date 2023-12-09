@@ -94,9 +94,6 @@ app.post("/api/login", async (req, res) => {
                 error_message: "Incorrect credentials",
             });
         }
-        console.log("User:", user);
-        console.log("Password:", password);
-        console.log("email:", email);
         // Compare hashed password with PEPPER
         bcrypt.compare(password + process.env.PEPPER, user.password, (err, match) => {
             if (err || !match) {
@@ -125,7 +122,6 @@ app.post("/api/register", async (req, res) => {
     let client;
     try {
         const { email, password, username } = req.body;
-        console.log(req.body);
         client = await connectToMongoDB();
         const usersCollection = await getCollection("Users", client);
 
@@ -141,13 +137,10 @@ app.post("/api/register", async (req, res) => {
         const salt = await bcrypt.genSalt(10);
         // Retrieve the pepper value from the environment variable
         const pepper = process.env.PEPPER;
-        console.log("Pepper:", pepper);
         // Concatenate the password and pepper
         const pepperedPassword = password + pepper;
-        console.log("Peppered Password:", pepperedPassword);
         // Hash the peppered password with the generated salt
         const hashedPassword = await bcrypt.hash(pepperedPassword, salt);
-        console.log(hashedPassword);
         // Save user data to MongoDB
         await usersCollection.insertOne({
             id: generateID(),
@@ -156,11 +149,6 @@ app.post("/api/register", async (req, res) => {
             salt,
             username,
         });
-        console.log("Account created successfully!")
-        console.log("Email:", email);
-        console.log("Password:", password);
-        console.log("Username:", username);
-        console.log("Salt:", salt);
         res.json({
             message: "Account created successfully!",    
         });
@@ -176,7 +164,6 @@ app.post("/api/register", async (req, res) => {
 
 app.post("/api/create/thread", async (req, res) => {
     const { thread, userId } = req.body;
-    console.log(req.body);
     const client = await connectToMongoDB();
     const threadsCollection = await getCollection("Posts", client);
 
@@ -188,7 +175,6 @@ app.post("/api/create/thread", async (req, res) => {
             replies: [],
             likes: [],
         });
-        console.log("Thread Creation Result: ",result);
         if (result.acknowledged) {
             res.json({
                 message: "Post created successfully!"
@@ -230,7 +216,6 @@ app.get("/api/all/threads", async (req, res) => {
 
 app.post("/api/thread/like", async (req, res) => {
     const { threadId, userId } = req.body;
-    console.log(req.body);
     const client = await connectToMongoDB();
     
     const threadsCollection = await getCollection("Posts", client);
@@ -319,7 +304,6 @@ app.post("/api/create/reply", async (req, res) => {
             { $push: { replies: { userId, text: reply } } },
             { returnDocument: 'after' }
         );
-        console.log(result);
         if (result) {
             res.json({
                 message: "Response added successfully!",
