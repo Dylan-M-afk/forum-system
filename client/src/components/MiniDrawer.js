@@ -106,12 +106,7 @@ export default function MiniDrawer({ children }) {
   const signOut = useSignOut();
   const theme = useTheme();
   const [open, setOpen] = React.useState(false);
-  const SignOut = () => {
-    const navigate = useNavigate();
-    localStorage.removeItem("_id");
-    // 👇🏻 redirects to the login page
-    navigate("/");
-  };
+  const navigate = useNavigate();
 
   const handleDrawerOpen = () => {
     setOpen(true);
@@ -119,6 +114,10 @@ export default function MiniDrawer({ children }) {
 
   const handleDrawerClose = () => {
     setOpen(false);
+  };
+
+  const handleHomeClick = () => {
+    navigate("/dashboard");
   };
 
   return (
@@ -157,7 +156,7 @@ export default function MiniDrawer({ children }) {
         <Divider />
           <List  sx={{ flexGrow: 1 }}>
             {[
-              { text: 'Home', icon: <HomeIcon /> },
+              { text: 'Home', icon: <HomeIcon />, onClick: handleHomeClick },
               { text: 'Search', icon: <SearchIcon /> },
               { text: 'Account', icon: <AccountCircleIcon /> },
             ].map((item, index) => (
@@ -168,6 +167,7 @@ export default function MiniDrawer({ children }) {
                     justifyContent: open ? 'initial' : 'center',
                     px: 2.5,
                   }}
+                  onClick={item.onClick}
                 >
                   <ListItemIcon
                     sx={{

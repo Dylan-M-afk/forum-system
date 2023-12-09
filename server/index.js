@@ -225,16 +225,25 @@ app.post("/api/thread/like", async (req, res) => {
     const threadsCollection = await getCollection("Posts", client);
 
     try {
-        const result = await threadsCollection.findOneAndUpdate(
-            { id: threadId},
-            { $addToSet: { likes: userId } },
-            { returnDocument: 'after' }
-        );
+        const result = await threadsCollection.findOne({ id: threadId });
 
         if (result) {
-            res.json({
-                message: "You've reacted to the thread!",
-            });
+            if (result.likes.includes(userId)) {
+                res.json({
+                    message: "You've already liked the thread!",
+                });
+            } else {
+                const updatedResult = await threadsCollection.findOneAndUpdate(
+                    { id: threadId },
+                    { $addToSet: { likes: userId } },
+                    { returnDocument: 'after' }
+                );
+
+                res.json({
+                    message: "You've reacted to the thread!",
+                    updatedLikes: updatedResult.likes,
+                });
+            }
         } else {
             res.json({
                 error_message: "Thread not found",

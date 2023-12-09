@@ -7,77 +7,11 @@ import Likes from "../utils/Likes";
 import Comments from "../utils/Comments";
 import MiniDrawer from "./MiniDrawer";
 
-
-
 const Home = () => {
     const [isLoading, setIsLoading] = useState(false);
-    const [posts, setPosts] = useState([]);
     const [thread, setThread] = useState("");
     const [threadList, setThreadList] = useState([]);
-
-    const createThread = async () => {
-        try {
-            const response = await fetch("http://localhost:4000/api/create/thread", {
-                method: "POST",
-                body: JSON.stringify({
-                    thread,
-                    userId: localStorage.getItem("_id"),
-                }),
-                headers: {
-                    "Content-Type": "application/json",
-                },
-            });
-    
-            if (!response.ok) {
-                throw new Error(`Error creating thread: ${response.status}`);
-            }
-    
-            const data = await response.json();
-            console.log("Server Response:", data); // Log the response for inspection
-    
-            alert(data.message);
-    
-            if (data.thread) {
-                setThreadList((prevThreads) => [...prevThreads, data.thread]);
-            }
-        } catch (error) {
-            console.error(error);
-            // Handle error, you might want to show an error message to the user
-        }
-    };
-    
-    
-    
-    
-    //👇🏻 Triggered when the form is submitted
-    
-    const handleSubmit = (e) => {
-    
-        e.preventDefault();
-    
-        //👇🏻 Calls the function
-    
-        createThread();
-    
-        setThread("");
-    
-    };
-    //👇🏻 The useEffect Hook
     const navigate = useNavigate();
-    const fetchThreads = () => {
-        setIsLoading(true);
-        fetch("http://localhost:4000/api/all/threads")
-            .then((res) => res.json())
-            .then((data) => {
-                setThreadList(data.threads);
-                setIsLoading(false);
-            })
-            .catch((err) => {
-                console.error(err);
-                setIsLoading(false);
-            });
-    };
-
     useEffect(() => {
         const checkUser = () => {
             if (!localStorage.getItem("_id")) {
@@ -89,6 +23,86 @@ const Home = () => {
 
         checkUser();
     }, [navigate]);
+
+    const createThread = async () => {
+        if (thread.trim() === "") {
+            alert("Thread title cannot be empty");
+            return;
+        }
+        try {
+            const response = await fetch("http://localhost:4000/api/create/thread", {
+                method: "POST",
+                body: JSON.stringify({
+                    thread,
+                    userId: localStorage.getItem("_id"),
+                }),
+                headers: {
+                    "Content-Type": "application/json",
+                },
+            });
+
+            if (!response.ok) {
+                throw new Error(`Error creating thread: ${response.status}`);
+            }
+
+            const data = await response.json();
+            console.log("Server Response:", data); // Log the response for inspection
+
+            alert(data.message);
+
+            if (data.thread) {
+                setThreadList((prevThreads) => [...prevThreads, data.thread]);
+            }
+        } catch (error) {
+            console.error(error);
+            // Handle error, you might want to show an error message to the user
+        }
+    };
+
+    const handleSubmit = (e) => {
+        e.preventDefault();
+        createThread();
+        setThread("");
+    };
+    const fetchThreads = () => {
+        const storedThreads = localStorage.getItem("threads");
+        if (storedThreads) {
+            setThreadList(JSON.parse(storedThreads));
+        } else {
+            setIsLoading(true);
+            fetch("http://localhost:4000/api/all/threads")
+                .then((res) => res.json())
+                .then((data) => {
+                    setThreadList(data.threads);
+                    localStorage.setItem("threads", JSON.stringify(data.threads));
+                    setIsLoading(false);
+                })
+                .catch((err) => {
+                    console.error(err)
+                    setIsLoading(false);
+                });
+        }
+    }
+
+    const refreshThreads = () => {
+        setIsLoading(true);
+        setThreadList([]);
+        fetch("http://localhost:4000/api/all/threads")
+            .then((res) => res.json())
+            .then((data) => {
+                setThreadList(data.threads);
+                localStorage.setItem("threads", JSON.stringify(data.threads));
+                setIsLoading(false);
+            })
+            .catch((err) => {
+                console.error(err)
+                setIsLoading(false);
+            });
+    }
+
+    const handleLike = () => {
+        refreshThreads();
+    }
 
     return (
         <MiniDrawer>
@@ -108,6 +122,7 @@ const Home = () => {
                     <button className='homeBtn'>CREATE THREAD</button>
                 </form>
                 <div className='thread__container'>
+                    <button className='refreshBtn' onClick={refreshThreads}>Refresh Threads</button>
                     {isLoading ? (
                         <CircularProgress />
                     ) : (
@@ -115,7 +130,7 @@ const Home = () => {
                             <div className='thread__item' key={thread.id}>
                                 <p>{thread.title}</p>
                                 <div className='react__container'>
-                                    <Likes numberOfLikes={thread.likes.length} threadId={thread.id} />
+                                    <Likes numberOfLikes={thread.likes.length} threadId={thread.id} onLike={handleLike} />
                                     <Comments
                                         numberOfComments={thread.replies && thread.replies.length}
                                         threadId={thread.id}
@@ -130,4 +145,5 @@ const Home = () => {
         </MiniDrawer>
     );
 };
+
 export default Home;
