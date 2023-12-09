@@ -119,7 +119,7 @@ const Replies = () => {
               className="modalInput"
             />
             
-            <button className="modalBtn">SEND</button>
+            <button className="modalBtn">Send</button>
             <button onClick={handleRefresh} className="refreshBtn">Refresh</button>
           </form>
         )}
