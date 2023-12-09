@@ -23,6 +23,15 @@ async function connectToMongoDB() {
         // Connect to MongoDB and return the client
         await client.connect();
         console.log("Connected to MongoDB");
+
+        // Use the specified database
+        const db = client.db(databaseName);
+
+        // Perform a simple query to trigger the creation of the database
+        await db.command({ ping: 1 });
+
+        console.log("Database created or already exists:", databaseName);
+
         return client;
     } catch (error) {
         console.error("Error connecting to MongoDB:", error);
@@ -43,6 +52,7 @@ const getCollection = async (collectionName, client) => {
         throw error;
     }
 };
+
 
 
 app.get("/api", (req, res) => {
@@ -86,9 +96,11 @@ app.post("/api/login", async (req, res) => {
                 error_message: "Incorrect credentials",
             });
         }
-
-        // Compare hashed password
-        bcrypt.compare(password, user.password, (err, match) => {
+        console.log("User:", user);
+        console.log("Password:", password);
+        console.log("email:", email);
+        // Compare hashed password with PEPPER
+        bcrypt.compare(password + process.env.PEPPER, user.password, (err, match) => {
             if (err || !match) {
                 return res.json({
                     error_message: "Incorrect credentials",
@@ -127,7 +139,8 @@ app.post("/api/register", async (req, res) => {
                 error_message: "User already exists",
             });
         }
-
+        // Create a salt
+        const salt = await bcrypt.genSalt(10);
         // Retrieve the pepper value from the environment variable
         const pepper = process.env.PEPPER;
         console.log("Pepper:", pepper);
