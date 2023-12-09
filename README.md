@@ -46,6 +46,10 @@ npm install
 npm start
 ```
 
+## Access the webui
+You can access the webui after you have installed and ran both the client and server. [Navigate to localhost:3000](http://localhost:3000) in your browser.
+
+
 ## Configuring the Application
 
 The application uses environment variables for configuration. These are stored in a `.env` file. A sample `.env.sample` file is included in the project.
