@@ -12,6 +12,11 @@ const Replies = () => {
   const { id } = useParams();
 
   useEffect(() => {
+    // Check if user is logged in
+    if (!localStorage.getItem("_id")) {
+      navigate("/");
+      return;
+    }
     const fetchReplies = () => {
       setLoading(true); // Set loading to true before fetching replies
 
