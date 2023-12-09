@@ -96,8 +96,6 @@ Express, a minimalist web application framework for Node.js, simplifies the deve
 
 ### [bcrypt](https://www.npmjs.com/package/bcrypt)
 
-![bcrypt Logo](https://upload.wikimedia.org/wikipedia/commons/6/6a/A_bycrypt.png)
-
 The bcrypt library is employed for secure password hashing in the React & Mongo Forum. It adds an extra layer of protection by ensuring that user passwords are stored securely.
 
 ### [dotenv](https://www.npmjs.com/package/dotenv)
