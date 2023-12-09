@@ -2,6 +2,31 @@
 
 This is a forum application built with JavaScript and MongoDB. It allows users to create threads, post comments, and like posts. The application uses environment variables for configuration and bcrypt for password hashing.
 
+## Contents
+
+- [Introduction](#react--mongo-forum)
+- [Prerequisites](#prerequisites)
+- [Installing the Project](#installing-the-project)
+  - [Automated Install](#automated-install)
+    - [1. Configure Environment](#1-configure-environment)
+    - [2. Install and Run](#2-install-and-run)
+    - [3. Future Runs](#3-future-runs)
+  - [Manual Install](#manual-install)
+    - [1. Clone the repository](#1-clone-the-repository)
+    - [2. Navigate to the project directory](#2-navigate-to-the-project-directory)
+    - [3. Install client dependencies](#3-install-client-dependencies)
+    - [4. Install server dependencies](#4-install-server-dependencies)
+    - [Configuring the Application](#configuring-the-application)
+- [Access the webui](#access-the-webui)
+- [Technology Used](#technology-used)
+  - [React](#react)
+  - [MongoDB](#mongodb)
+  - [Node.js](#nodejs)
+  - [Express](#express)
+  - [bcrypt](#bcrypt)
+  - [dotenv](#dotenv)
+
+
 ## Prerequisites
 
 Before you begin, ensure you have met the following requirements:
@@ -14,21 +39,33 @@ Before you begin, ensure you have met the following requirements:
 
 The project has two main directories, client and server. You must install dependencies and run each in seperate terminals.
 
-To install the project, follow these steps:
+To install the project, follow one of these two guides:
 
-### 1. Clone the repository:
+### Automated Install
+#### 1. Configure Environment: 
+Run the `1_Configure_Env.bat` script. This script will automatically rename and configure the required data by prompting you for input.
+
+#### 2. Install and Run:
+Run the `2_Install_and_Run.bat` script. This will install both the client and server dependencies and open two additional command prompt windows to run the client and server.
+
+#### 3. Future Runs:
+After the initial setup, for subsequent runs, you only need to execute `Run_No_Install.bat`
+
+### Manual install
+
+#### 1. Clone the repository:
 
 ```sh
 git clone https://github.com/Dylan-M-afk/forum-system.git
 ```
 
-### 2. Navigate to the project directory:
+#### 2. Navigate to the project directory:
 
 ```sh
 cd forum-system
 ```
 
-### 3. Install client dependencies:
+#### 3. Install client dependencies:
 Navigate to the client folder, and install, then run the program with start.
 
 ```sh
@@ -37,7 +74,7 @@ npm install
 npm start
 ```
 
-### 4. Install server dependencies:
+#### 4. Install server dependencies:
 Open another command prompt and navigate to the server, install, then run the program with start.
 
 ```sh
@@ -46,11 +83,7 @@ npm install
 npm start
 ```
 
-## Access the webui
-You can access the webui after you have installed and ran both the client and server. [Navigate to localhost:3000](http://localhost:3000) in your browser.
-
-
-## Configuring the Application
+#### Configuring the Application
 
 The application uses environment variables for configuration. These are stored in a `.env` file. A sample `.env.sample` file is included in the project.
 
@@ -64,6 +97,9 @@ Here's what each environment variable is for:
 * `MONGODB_URI`: Your MongoDB connection string.
 * `DATABASE_NAME`: The name of the MongoDB database you want to use.
 * `PEPPER`: A secret value used for password hashing.
+
+## Access the webui
+You can access the webui after you have installed and ran both the client and server. [Navigate to localhost:3000](http://localhost:3000) in your browser.
 
 
 ## Technology Used
