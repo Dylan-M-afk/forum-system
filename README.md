@@ -14,21 +14,34 @@ Before you begin, ensure you have met the following requirements:
 
 The project has two main directories, client and server. You must install dependencies and run each in seperate terminals.
 
-To install the project, follow these steps:
+To install the project, follow one of these two guides:
 
-### 1. Clone the repository:
+### Automated Install
+#### 1. Configure Environment: 
+Run the 1_Configure_Env.bat script. This script will automatically rename and configure the required data by prompting you for input.
+
+#### 2. Install and Run:
+Run the 2_Install_and_Run.bat script. This will install both the client and server dependencies and open two additional command prompt windows to run the client and server.
+Any time after this in the future you only need to run Run_No_Install.bat.
+
+#### 3. Future Runs:
+After the initial setup, for subsequent runs, you only need to execute Run_No_Install.bat.
+
+### Manual install
+
+#### 1. Clone the repository:
 
 ```sh
 git clone https://github.com/Dylan-M-afk/forum-system.git
 ```
 
-### 2. Navigate to the project directory:
+#### 2. Navigate to the project directory:
 
 ```sh
 cd forum-system
 ```
 
-### 3. Install client dependencies:
+#### 3. Install client dependencies:
 Navigate to the client folder, and install, then run the program with start.
 
 ```sh
@@ -37,7 +50,7 @@ npm install
 npm start
 ```
 
-### 4. Install server dependencies:
+#### 4. Install server dependencies:
 Open another command prompt and navigate to the server, install, then run the program with start.
 
 ```sh
