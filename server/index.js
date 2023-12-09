@@ -30,8 +30,6 @@ async function connectToMongoDB() {
         // Perform a simple query to trigger the creation of the database
         await db.command({ ping: 1 });
 
-        console.log("Database created or already exists:", databaseName);
-
         return client;
     } catch (error) {
         console.error("Error connecting to MongoDB:", error);
