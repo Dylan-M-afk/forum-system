@@ -16,8 +16,8 @@ This is a forum application built with JavaScript and MongoDB. It allows users t
     - [2. Navigate to the project directory](#2-navigate-to-the-project-directory)
     - [3. Install client dependencies](#3-install-client-dependencies)
     - [4. Install server dependencies](#4-install-server-dependencies)
+    - [Configuring the Application](#configuring-the-application)
 - [Access the webui](#access-the-webui)
-- [Configuring the Application](#configuring-the-application)
 - [Technology Used](#technology-used)
   - [React](#react)
   - [MongoDB](#mongodb)
@@ -84,11 +84,7 @@ npm install
 npm start
 ```
 
-## Access the webui
-You can access the webui after you have installed and ran both the client and server. [Navigate to localhost:3000](http://localhost:3000) in your browser.
-
-
-## Configuring the Application
+#### Configuring the Application
 
 The application uses environment variables for configuration. These are stored in a `.env` file. A sample `.env.sample` file is included in the project.
 
@@ -102,6 +98,9 @@ Here's what each environment variable is for:
 * `MONGODB_URI`: Your MongoDB connection string.
 * `DATABASE_NAME`: The name of the MongoDB database you want to use.
 * `PEPPER`: A secret value used for password hashing.
+
+## Access the webui
+You can access the webui after you have installed and ran both the client and server. [Navigate to localhost:3000](http://localhost:3000) in your browser.
 
 
 ## Technology Used
