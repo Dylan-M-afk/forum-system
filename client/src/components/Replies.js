@@ -64,7 +64,8 @@ const Replies = () => {
       .then((res) => res.json())
       .then((data) => {
         alert(data.message);
-        navigate("/dashboard");
+        // Refresh replies
+        handleRefresh();
       })
       .catch((err) => console.error(err));
   };

@@ -44,7 +44,7 @@ const Home = () => {
             if (!response.ok) {
                 throw new Error(`Error creating thread: ${response.status}`);
             }
-
+            refreshThreads();
             const data = await response.json();
             console.log("Server Response:", data); // Log the response for inspection
 
@@ -53,6 +53,9 @@ const Home = () => {
             if (data.thread) {
                 setThreadList((prevThreads) => [...prevThreads, data.thread]);
             }
+            // If we get here, the response is ok
+            // Refresh threads
+            refreshThreads();
         } catch (error) {
             console.error(error);
             // Handle error, you might want to show an error message to the user
