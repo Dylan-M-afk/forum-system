@@ -43,14 +43,13 @@ To install the project, follow one of these two guides:
 
 ### Automated Install
 #### 1. Configure Environment: 
-Run the 1_Configure_Env.bat script. This script will automatically rename and configure the required data by prompting you for input.
+Run the `1_Configure_Env.bat` script. This script will automatically rename and configure the required data by prompting you for input.
 
 #### 2. Install and Run:
-Run the 2_Install_and_Run.bat script. This will install both the client and server dependencies and open two additional command prompt windows to run the client and server.
-Any time after this in the future you only need to run Run_No_Install.bat.
+Run the `2_Install_and_Run.bat` script. This will install both the client and server dependencies and open two additional command prompt windows to run the client and server.
 
 #### 3. Future Runs:
-After the initial setup, for subsequent runs, you only need to execute Run_No_Install.bat.
+After the initial setup, for subsequent runs, you only need to execute `Run_No_Install.bat`
 
 ### Manual install
 
